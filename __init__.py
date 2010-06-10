@@ -86,7 +86,7 @@ def split_entry_trailer(text):
 
     rejoining the two gives the original entry
     """
-    re_useless = re.compile(r"^ *(----|\[\[ *[Ca-z\-]* *:[^\]]*\]\]|\{\{count page[^\}]*\}\})? *$")
+    re_useless = re.compile(r"^ *(----|\[\[ *[Ca-z\-]* *:[^\]]*\]\]|\{\{(count page|attention)[^\}]*\}\})? *$")
     useful = []
     useless = []
     for line in text.split("\n"):
@@ -314,3 +314,20 @@ def is_form_of(line):
         return True
 
     return False
+
+def strlinks (string):
+    """
+        A generator of all the links in a string.
+    """
+    links = string.split('[[')[1:]
+    for link in links:
+        hashpos = link.find('#')
+        pipepos = link.find('|')
+        if hashpos > 0 and hashpos < pipepos:
+            pipepos = hashpos
+
+        bracpos = link.find(']]')
+        if pipepos > 0 and bracpos > 0 and pipepos < bracpos:
+            yield link[:pipepos]
+        elif bracpos > 0:
+            yield link[:bracpos]
