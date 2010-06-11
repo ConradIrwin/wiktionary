@@ -215,6 +215,31 @@ def definition_lines(text):
     """
     return [line for line in text.split("\n") if len(line) > 2 and line[0] == "#" and line[1] not in ":*#*"]
 
+class BadTranslationTable(Exception):
+    pass
+
+class TranslationTable(object):
+    re_gloss = re.compile(r"\{\{trans-top( *\|(\{\{[^}]*\}\}|[^}]|}[^}])*|)?\}\}[^\}]*\n")
+
+    def __init__(self, wikitext):
+        self.wikitext = wikitext
+        m = self.re_gloss.match(wikitext)
+        if m:
+            self.gloss = m.group(1).lstrip("|")
+        else:
+            raise BadTranslationTable(wikitext)
+
+def translation_tables(text):
+
+    split = text.split("{{trans-top")[1:]
+
+    for attempt in split:
+        end = attempt.find('{{trans-bot')
+        if end > -1:
+            yield TranslationTable("{{trans-top" + attempt[:end])
+        else:
+            raise BadTranslationTable(attempt)
+
 def latest_dump(offline=False, helper="../dumps/latest_dump.sh", __cache=[]):
     """
         Returns the path to the latest dump file according to `helper`
