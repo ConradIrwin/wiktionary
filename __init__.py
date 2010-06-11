@@ -23,6 +23,7 @@ namespaces = set(['Media','Special','Talk','User','User talk','Wiktionary', 'Wik
 posses = set(['noun', 'noun phrase', 'noun form', 'verb', 'verb form', 'verb phrase', 'transitive verb', 'intransitive verb', 'adjective', 'adjective form', 'adjective phrase', 'adverb', 'adverb phrase', 'pronoun', 'conjunction', 'contraction', 'interjection', 'preposition', 'proper noun', 'article', 'prefix', 'verb prefix', 'suffix', 'infix', 'interfix', 'circumfix', 'affix', 'idiom', 'phrase', 'acronym', 'abbreviation', 'initialism', 'symbol', 'letter', 'number', 'numeral', 'ordinal number', 'ordinal numeral', 'cardinal number', 'cardinal numeral', 'particle', 'proverb', 'han character', 'kanji', 'hanzi', 'hanja', 'pinyin', 'pinyin syllable', 'syllable', 'katakana character', 'hiragana letter', 'hiragana character', 'counter', 'classifier', 'adnominal', 'determiner', 'expression', 'postposition', 'root', 'participle', '{{initialism}}', '{{acronym}}', '{{abbreviation}}', 'cmavo', 'gismu'])
 
 re_language = re.compile(r"^(==\s*(?:\[\[\s*)?([^[=\s].*[^=\s\]])(?:\s*\]\])?\s*==)$", re.M)
+re_count_page = re.compile(r"\n?\{\{count page\|[^\}]*\}\}")
 
 class Redirect(object):
     """
@@ -86,7 +87,7 @@ def split_entry_trailer(text):
 
     rejoining the two gives the original entry
     """
-    re_useless = re.compile(r"^ *(----|\[\[ *[Ca-z\-]* *:[^\]]*\]\]|\{\{count page[^\}]*\}\})? *$")
+    re_useless = re.compile(r"^ *(----|\[\[ *[Ca-z\-]* *:[^\]]*\]\]|\{\{(count page|attention)[^\}]*\}\})? *$")
     useful = []
     useless = []
     for line in text.split("\n"):
@@ -98,6 +99,12 @@ def split_entry_trailer(text):
             useless = []
 
     return ("\n".join(useful) + "\n", "\n".join(useless))
+
+def check_count_page(text):
+    if "[[" in text:
+        return re_count_page.sub("", text)
+    else:
+        return text + "\n{{count page|[[Wiktionary:Page count]]}}"
 
 class NotUniqueException(Exception):
     def __init__(self, lst):
@@ -339,3 +346,20 @@ def is_form_of(line):
         return True
 
     return False
+
+def strlinks (string):
+    """
+        A generator of all the links in a string.
+    """
+    links = string.split('[[')[1:]
+    for link in links:
+        hashpos = link.find('#')
+        pipepos = link.find('|')
+        if hashpos > 0 and hashpos < pipepos:
+            pipepos = hashpos
+
+        bracpos = link.find(']]')
+        if pipepos > 0 and bracpos > 0 and pipepos < bracpos:
+            yield link[:pipepos]
+        elif bracpos > 0:
+            yield link[:bracpos]
