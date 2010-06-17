@@ -241,7 +241,7 @@ def translation_tables(text):
     split = text.split("{{trans-top")[1:]
 
     for attempt in split:
-        end = attempt.find('{{trans-bot')
+        end = attempt.find('{{trans-bottom}}') + len('{{trans-bottom}}')
         if end > -1:
             yield TranslationTable("{{trans-top" + attempt[:end])
         else:
