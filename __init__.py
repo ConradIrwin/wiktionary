@@ -74,9 +74,10 @@ class Section(object):
 
     The text will include the heading
     """
-    def __init__(self, heading, text):
+    def __init__(self, heading, text, level=None):
         self.heading = heading
         self.text = text
+        self.level = level
 
     def __repr__(self):
         return '"""' + self.text + '"""'
@@ -146,11 +147,11 @@ def all_sections(heading, text):
             else:
                 yield Section(heading, split[x+1] + splot[x+0])
 
+re_any_heading = re.compile(r"^(=+\s*(?:\[\[\s*)?([^\[=\s].*[^=\s\]])(?:\s*\]\])?\s*=+)$", re.M)
 def all_subsections(text):
     """
         Get all the subsections of a language section (ignoring nesting)
     """
-    re_any_heading = re.compile(r"^(=+\s*(?:\[\[\s*)?([^\[=\s].*[^=\s\]])(?:\s*\]\])?\s*=+)$", re.M)
     split = re_any_heading.split(text)
 
     if len(split) == 1:
@@ -160,6 +161,22 @@ def all_subsections(text):
         split[0] = first + split[0]
         for x in range(1,len(split),3):
             yield Section(split[x], split[x-1] + split[x+1])
+
+def all_sections(text):
+    split = re_any_heading.split(text)
+
+    if len(split) == 1:
+        yield Section(None, split[0])
+    else:
+        first = split.pop(0)
+        split[0] = first + split[0]
+        for x in range(1,len(split),3):
+            for level in ["======", "=====", "====", "===", "==", "="]:
+                if split[x-1].startswith(level) and split[x-1].endswith(level):
+                    break
+
+            yield Section(split[x], split[x-1] + split[x+1], len(level))
+
 
 def all_headings(text, preserve_links=False):
     if preserve_links:
@@ -189,7 +206,7 @@ def language_sections(text):
         split[1] = split[0] + split[1]
         x = 1
         while x < len(split):
-            yield Section(split[x+1], split[x] + split[x+2])
+            yield Section(split[x+1], split[x] + split[x+2], 2)
             x += 3
 
 def filter_language(language, entry, editor):
