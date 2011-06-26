@@ -341,7 +341,7 @@ def talk_page(title):
         else:
             return "Talk:" + parts[0] + ":" + parts[1]
 
-re_templated = re.compile(r"(^#* *\{\{.*\}\} *$|\{\{form of|\{\{infl)")
+re_templated = re.compile(r"(^#* *\{\{.*\}\}\.? *$|\{\{form of|\{\{infl)")
 re_not_templated = re.compile(r"([pP]resent|[Pp]erfect|[Pp]lural|[Ss]ingular|[Pp]ast historic|ive|[Pp]reterite|[Cc]ompound)(\]\])?[^a-zA-Z]*form of[ ']*\[\[")
 re_compound = re.compile(r" *[Cc]ompound of[^a-zA-Z]*\[\[")
 
